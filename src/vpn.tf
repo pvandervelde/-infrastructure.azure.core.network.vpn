@@ -180,50 +180,29 @@ resource "azurerm_monitor_diagnostic_setting" "vpn_pip" {
 }
 
 resource "azurerm_virtual_network_gateway" "vpn" {
-  name = "${local.name_prefix_tf}-vpn"
+  name = "${local.name_prefix_tf}-gw"
   location = var.location
   resource_group_name = local.vnet_resource_group
 
   type     = "Vpn"
   vpn_type = "RouteBased"
 
-  active_active = var.active_active
-  enable_bgp    = var.enable_bgp
-  sku           = var.sku
+  active_active = false
+  enable_bgp    = false
+  sku           = "Basic"
 
   ip_configuration {
-    name = "${local.name_prefix_tf}-vpn-config"
+    name = "${local.name_prefix_tf}-gw-config"
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id = azurerm_public_ip.vpn.id
-    subnet_id = data.azurerm_subnet.gateway_subnet
-  }
-
-  dynamic "vpn_client_configuration" {
-    for_each = var.client_configuration != null ? [var.client_configuration] : []
-    iterator = vpn
-    content {
-      address_space = [vpn.value.address_space]
-
-      root_certificate {
-        name = "VPN-Certificate"
-
-        public_cert_data = vpn.value.certificate
-      }
-
-      vpn_client_protocols = vpn.value.protocols
-    }
-  }
-
-  # TODO Buggy... keep want to change this attribute
-  lifecycle {
-    ignore_changes = [vpn_client_configuration[0].root_certificate]
+    subnet_id = data.azurerm_subnet.gateway_subnet.id
   }
 
   tags = merge( local.common_tags, local.extra_tags, var.tags )
 }
 
 resource "azurerm_monitor_diagnostic_setting" "vpn" {
-  name = "${local.name_prefix_tf}-vpn-analytics"
+  name = "${local.name_prefix_tf}-analytics"
   target_resource_id = azurerm_virtual_network_gateway.vpn.id
   log_analytics_workspace_id = data.azurerm_log_analytics_workspace.log_analytics_workspace.id
 
@@ -277,7 +256,7 @@ resource "azurerm_monitor_diagnostic_setting" "vpn" {
 }
 
 resource "azurerm_local_network_gateway" "local" {
-  address_space = var.local_network_address_space
+  address_space = [ var.local_network_address_space ]
   gateway_address = var.local_network_gateway_address
   location = var.location
   name  = "${local.name_prefix_tf}-lng"
