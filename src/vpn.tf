@@ -86,6 +86,7 @@ locals {
 locals {
   common_tags = {
     category    = "${var.category}"
+    createdby   = "terraform"
     environment = "${var.environment}"
     location    = "${var.location}"
     source      = "${var.meta_source}"
