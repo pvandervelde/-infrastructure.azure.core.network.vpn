@@ -132,12 +132,11 @@ resource "random_string" "dns" {
 }
 
 resource "azurerm_public_ip" "vpn" {
-  allocation_method = "Static"
-  domain_name_label = format("%sgw%s", lower(replace(var.category, "/[[:^alnum:]]/", "")), random_string.dns.result) # FIX THIS
+  allocation_method = "Dynamic"
   location = var.location
   name = "${local.name_prefix_tf}-pip"
   resource_group_name = local.vnet_resource_group
-  sku = "Standard"
+  sku = "Basic"
   tags = merge( local.common_tags, local.extra_tags, var.tags )
 }
 
