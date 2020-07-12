@@ -10,7 +10,7 @@ provider "azurerm" {
 
   subscription_id = var.subscription_production
 
-  version = "~>2.12.0"
+  version = "~>2.18.0"
 }
 
 provider "azurerm" {
@@ -20,7 +20,7 @@ provider "azurerm" {
 
     subscription_id = var.environment == "production" ? var.subscription_production : var.subscription_test
 
-    version = "~>2.12.0"
+    version = "~>2.18.0"
 }
 
 #
@@ -86,6 +86,7 @@ locals {
 locals {
   common_tags = {
     category    = "${var.category}"
+    createdby   = "terraform"
     environment = "${var.environment}"
     location    = "${var.location}"
     source      = "${var.meta_source}"
@@ -132,12 +133,11 @@ resource "random_string" "dns" {
 }
 
 resource "azurerm_public_ip" "vpn" {
-  allocation_method = "Static"
-  domain_name_label = format("%sgw%s", lower(replace(var.category, "/[[:^alnum:]]/", "")), random_string.dns.result) # FIX THIS
+  allocation_method = "Dynamic"
   location = var.location
   name = "${local.name_prefix_tf}-pip"
   resource_group_name = local.vnet_resource_group
-  sku = "Standard"
+  sku = "Basic"
   tags = merge( local.common_tags, local.extra_tags, var.tags )
 }
 
@@ -186,6 +186,7 @@ resource "azurerm_virtual_network_gateway" "vpn" {
 
   type     = "Vpn"
   vpn_type = "RouteBased"
+  generation = "Generation1"
 
   active_active = false
   enable_bgp    = false
