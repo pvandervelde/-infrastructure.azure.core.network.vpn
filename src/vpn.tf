@@ -185,7 +185,7 @@ resource "azurerm_virtual_network_gateway" "vpn" {
 
   type     = "Vpn"
   vpn_type = "RouteBased"
-  generation = "None"
+  generation = "Generation1"
 
   active_active = false
   enable_bgp    = false
